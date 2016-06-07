@@ -25,13 +25,15 @@ _HTML_;
 }
 else 
 {
-  require_once 'MDB2.php';
-	$database = MDB2::connect('mssql://cop4722:4722@teachms.cs.fiu.edu/cop4722');
-	if (MDB2::isError($database)) 
-	{
-		die("cannot connect - " . $database->getMessage() . $database->getDebugInfo());
-	}
-	$database->setErrorHandling(PEAR_ERROR_DIE);
+  $host = 'localhost:3306';
+  $user='root';
+  $password='';
+  $database = 'company';
+  $con=mysqli_connect($host, $user, $password, $database);
+  if (mysqli_connect_errno()) {
+    echo "Failed to connect to MariaDB: " . mysqli_connect_error();
+    exit;
+  }
   $querystring = "
 	SELECT dname, Count(distinct pname) As NumberOfProjects, SUM(HOURS) As TotalWorkHours
     FROM department, project, works_on
@@ -40,7 +42,7 @@ else
     AND department.dnumber=project.dnum
     Group by dname";
 				  
-  $queryresult = $database->queryAll($querystring);
+  $queryresult = mysqli_query($con, $querystring);
   
   print("Output for the department number $departmentnumber:  <br>");
   

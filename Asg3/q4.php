@@ -28,13 +28,15 @@ _HTML_;
 }
 else 
 {
-  require_once 'MDB2.php';
-$database = MDB2::connect('mssql://cop4722:4722@teachms.cs.fiu.edu/cop4722');
-if (MDB2::isError($database)) 
-{
-  die("cannot connect - " . $database->getMessage() . $database->getDebugInfo());
-}
-$database->setErrorHandling(PEAR_ERROR_DIE);
+  $host = 'localhost:3306';
+  $user='root';
+  $password='';
+  $database = 'company';
+  $con=mysqli_connect($host, $user, $password, $database);
+  if (mysqli_connect_errno()) {
+    echo "Failed to connect to MariaDB: " . mysqli_connect_error();
+    exit;
+  }
   
   //Store the query for looking up the department name in querydepartmentname
   $querydepartmentname = "
@@ -57,19 +59,19 @@ $database->setErrorHandling(PEAR_ERROR_DIE);
 					AND ssn = mgrssn
 					AND essn = ssn;";
 					
-  $departmentnametable = $database->query($querydepartmentname);
+  $departmentnametable = $con->query($querydepartmentname);
   
-  $firstandlastnametable = $database->query($queryfirstandlastname);
+  $firstandlastnametable = $con->query($queryfirstandlastname);
   
-  $dependentstable = $database->query($querydependents);
+  $dependentstable = $con->query($querydependents);
   
   print("Output for the department name $departmentname:<br>");
   
   if($departmentname)
 	{
-		while (($departmentnamerecord = $departmentnametable->fetchRow()) 
-		&& ($namerecord = $firstandlastnametable->fetchRow()) 
-		&& ($dependentsrecord = $dependentstable->fetchRow())) 
+		while (($departmentnamerecord = mysqli_fetch_assoc($departmentnametable)) 
+		&& ($namerecord = mysqli_fetch_assoc($firstandlastnametable)) 
+		&& ($dependentsrecord = mysqli_fetch_assoc($dependentstable))) 
 		{
 			$finaltable .=  
 			"&nbsp; &nbsp; &nbsp; &nbsp; Department: $departmentnamerecord[0] <br>
