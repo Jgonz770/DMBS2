@@ -27,16 +27,18 @@ _HTML_;
 }
 else 
 {
-  require_once 'MDB2.php';
-	//$database = MDB2::connect('mssql://cop4722:4722@teachms.cs.fiu.edu/cop4722');
-	$database = MDB2::connect('mssql://localhost:3306@companyDB');
-	if (MDB2::isError($database)) 
-	{
-	  die("cannot connect - " . $database->getMessage() . $database->getDebugInfo());
-	}
-	$database->setErrorHandling(PEAR_ERROR_DIE);
+  $host = 'localhost:3306';
+  $user='root';
+  $password='';
+  $database = 'company';
+  $con=mysqli_connect($host, $user, $password, $database);
+  if (mysqli_connect_errno()) {
+    echo "Failed to connect to MariaDB: " . mysqli_connect_error();
+    exit;
+  }
+	//$database->setErrorHandling(PEAR_ERROR_DIE);
 	 {  
-	  $query = "
+	  $querystring = "
 	  SELECT dependent_name, employee.fname, employee.lname, manager.fname, manager.lname 
 	  FROM dependent, department, employee, employee manager  
 	  WHERE dependent_name = '$dependent' 
@@ -45,11 +47,14 @@ else
 	  AND employee.dno = manager.dno 
 	  AND manager.ssn = mgrssn";
 	  
-	  $queryresult = $database->queryAll($query);
-	  
+	  $queryresult = mysqli_query($con, $querystring);
+	  if (!$queryresult) {
+    print ( "Could not successfully run query ($querystring) from DB: " . mysqli_error($con) . "<br>");
+    exit;
+	  }
 	  print("Output for the dependent $dependent:  <br>");
 	  
-	  foreach ($queryresult as $record) 
+	  /*foreach ($queryresult as $record) 
 	  {
 		print(" &nbsp; &nbsp; &nbsp; &nbsp; Dependent: $record[0] <br>");
 		
@@ -63,7 +68,26 @@ else
 	  if (empty($queryresult)) 
 	  {
 		print(" &nbsp; &nbsp; &nbsp; &nbsp; Invalid dependent name $dependent <br>");
-	  }
+	  } */
+	  if (mysqli_num_rows($queryresult) == 0) {
+    print (" &nbsp; &nbsp; &nbsp; &nbsp; Invalid dependent name $dependent <br>");
+    exit;
+  }
+
+  while ($rows = mysqli_fetch_assoc($queryresult)) {
+    foreach ($rows as $record) {
+	
+	print(" &nbsp; &nbsp; &nbsp; &nbsp; Dependent: $record[0] <br>");
+		
+		print(" &nbsp; &nbsp; &nbsp; &nbsp; Employee: $record[1] $record[2] <br>");
+		
+		print(" &nbsp; &nbsp; &nbsp; &nbsp; Manager: $record[3] $record[4] <br>");
+		
+		print(" &nbsp; &nbsp; &nbsp; &nbsp; <br>");
+  }
+
+}
 	 }
 }
+
 ?>
